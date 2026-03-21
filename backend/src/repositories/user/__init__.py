@@ -1,4 +1,5 @@
 from .repository import UserRepository
+from .datatypes import UserCreate, UserUpdate, UserFilters
 from .exceptions import (
     UserNotFoundError,
     UserCreateError,
@@ -8,6 +9,9 @@ from .exceptions import (
 
 __all__ = [
     "UserRepository",
+    "UserCreate",
+    "UserUpdate",
+    "UserFilters",
     "UserNotFoundError",
     "UserCreateError",
     "UserUpdateError",

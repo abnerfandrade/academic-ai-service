@@ -1,4 +1,5 @@
 from .repository import DocumentRepository
+from .datatypes import DocumentCreate, DocumentUpdate, DocumentFilters
 from .exceptions import (
     DocumentNotFoundError,
     DocumentCreateError,
@@ -8,6 +9,9 @@ from .exceptions import (
 
 __all__ = [
     "DocumentRepository",
+    "DocumentCreate",
+    "DocumentUpdate",
+    "DocumentFilters",
     "DocumentNotFoundError",
     "DocumentCreateError",
     "DocumentUpdateError",

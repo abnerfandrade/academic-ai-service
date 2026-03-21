@@ -1,4 +1,5 @@
 from .repository import SessionRepository
+from .datatypes import SessionCreate, SessionUpdate, SessionFilters
 from .exceptions import (
     SessionNotFoundError,
     SessionCreateError,
@@ -8,6 +9,9 @@ from .exceptions import (
 
 __all__ = [
     "SessionRepository",
+    "SessionCreate",
+    "SessionUpdate",
+    "SessionFilters",
     "SessionNotFoundError",
     "SessionCreateError",
     "SessionUpdateError",

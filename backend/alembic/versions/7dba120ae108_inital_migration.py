@@ -1,8 +1,8 @@
-"""Initial migration
+"""inital migration
 
-Revision ID: 6d61b98b6378
+Revision ID: 7dba120ae108
 Revises: 
-Create Date: 2026-03-21 12:37:02.003727
+Create Date: 2026-03-21 17:31:24.094536
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '6d61b98b6378'
+revision: str = '7dba120ae108'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -25,6 +25,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('class_name', sa.String(length=255), nullable=False),
     sa.Column('filename', sa.String(length=255), nullable=False),
+    sa.Column('filehash', sa.String(length=255), nullable=False),
     sa.Column('status', sa.String(length=50), nullable=False),
     sa.Column('error_detail', sa.Text(), nullable=True),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),

@@ -48,7 +48,9 @@ def setup_logger():
             colorize=True,
             format=("<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{extra[request_id]}</cyan> | "
                     "<cyan>{extra[duration_ms]}ms</cyan> | <level>{name}:{function}:{line} - {message}</level>"),
-            level=settings.LOG_LEVEL
+            level=settings.LOG_LEVEL,
+            backtrace=False,
+            diagnose=False
         )
 
     logging.basicConfig(handlers=[InterceptHandler()], level=logging.WARNING)

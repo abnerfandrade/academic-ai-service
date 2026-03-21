@@ -7,13 +7,16 @@ from .exceptions import DocumentNotFoundError, DocumentCreateError, DocumentUpda
 
 
 class DocumentRepository(BaseRepository[Document, DocumentCreate, DocumentUpdate, DocumentFilters]):
-    async def create(self, data: DocumentCreate) -> Document:
+    async def create(self, data: DocumentCreate, *, commit: bool = False) -> Document:
         try:
             new_doc = Document(**data.model_dump())
 
             self.session.add(new_doc)
             await self.session.flush()
             await self.session.refresh(new_doc)
+
+            if commit:
+                await self.session.commit()
 
             return new_doc
         except Exception as e:
@@ -34,7 +37,9 @@ class DocumentRepository(BaseRepository[Document, DocumentCreate, DocumentUpdate
 
             if filters:
                 filter_map = {
-                    "class_name": lambda v: query.where(Document.class_name == v),
+                    "id": lambda v: query.where(Document.id == v),
+                    "class_name": lambda v: query.where(Document.class_name.ilike(f"%{v}%")),
+                    "filename": lambda v: query.where(Document.filename.ilike(f"%{v}%")),
                     "status": lambda v: query.where(Document.status == v),
                     "created_before": lambda v: query.where(Document.created_at <= v),
                     "created_after": lambda v: query.where(Document.created_at >= v),
@@ -81,3 +86,14 @@ class DocumentRepository(BaseRepository[Document, DocumentCreate, DocumentUpdate
             raise
         except Exception as e:
             raise DocumentDeleteError(f"Erro ao deletar documento {id}: {str(e)}")
+
+    async def get_by_hash(self, filehash: str) -> Document | None:
+        try:
+            query = select(Document).where(
+                Document.filehash == filehash, Document.status == "completed"
+            )
+            result = await self.session.execute(query)
+
+            return result.scalar_one_or_none()
+        except Exception as e:
+            raise Exception(f"Erro ao buscar arquivo por hash: {str(e)}")
