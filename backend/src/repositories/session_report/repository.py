@@ -28,6 +28,15 @@ class SessionReportRepository(BaseRepository[SessionReport, SessionReportCreate,
         except Exception as e:
             raise Exception(f"Erro ao buscar o relatório {id}: {e}") from e
 
+    async def get_by_session_id(self, session_id: int) -> Optional[SessionReport]:
+        try:
+            query = select(SessionReport).where(SessionReport.session_id == session_id)
+            result = await self.session.execute(query)
+
+            return result.scalar_one_or_none()
+        except Exception as e:
+            raise Exception(f"Erro ao buscar relatório da sessão {session_id}: {e}") from e
+
     async def get_all(self, filters: Optional[SessionReportFilters] = None) -> List[SessionReport]:
         try:
             query = select(SessionReport)

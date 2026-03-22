@@ -11,7 +11,8 @@ class Settings(BaseSettings):
 
     ENVIRONMENT: Literal["development", "production"] = Field(default="development", description="Ambiente de execução")
     LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = Field(default="INFO", description="Nível de log")
-    DATABASE_URL: str = Field(..., description="URL de conexão com o banco de dados")
+    DATABASE_URL: str = Field(..., description="URL de conexão com o banco de dados (postgresql+psycopg://)")
+    CHECKPOINTER_URL: str = Field(..., description="URL de conexão para o checkpointer LangGraph (postgresql://)")
     LLM_PROVIDER: Literal["gemini", "openai"] = Field(default="gemini", description="Provedor de LLM a ser utilizado")
     GEMINI_API_KEY: str = Field(..., description="Chave de API do Gemini")
     GEMINI_MODEL: str = Field(default="gemini-2.5-flash", description="Modelo do Gemini a ser utilizado")

@@ -7,13 +7,16 @@ from .exceptions import SessionNotFoundError, SessionCreateError, SessionUpdateE
 
 
 class SessionRepository(BaseRepository[Session, SessionCreate, SessionUpdate, SessionFilters]):
-    async def create(self, data: SessionCreate) -> Session:
+    async def create(self, data: SessionCreate, *, commit: bool = False) -> Session:
         try:
             new_session = Session(**data.model_dump())
 
             self.session.add(new_session)
             await self.session.flush()
             await self.session.refresh(new_session)
+
+            if commit:
+                await self.session.commit()
 
             return new_session
         except Exception as e:
@@ -83,3 +86,15 @@ class SessionRepository(BaseRepository[Session, SessionCreate, SessionUpdate, Se
             raise
         except Exception as e:
             raise SessionDeleteError(f"Erro ao deletar sessão {id}: {str(e)}")
+
+    async def get_by_user_id_and_document_id(self, user_id: int, document_id: int) -> Optional[Session]:
+        try:
+            query = select(Session).where(
+                Session.user_id == user_id,
+                Session.document_id == document_id
+            )
+            result = await self.session.execute(query)
+
+            return result.scalar_one_or_none()
+        except Exception as e:
+            raise Exception(f"Erro ao buscar a sessão para o usuário {user_id} e documento {document_id}: {str(e)}")
