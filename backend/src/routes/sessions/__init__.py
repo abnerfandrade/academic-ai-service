@@ -11,7 +11,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 
 from src.repositories.user import UserRepository
 from src.repositories.document import DocumentRepository
-from src.repositories.session import SessionRepository, SessionCreate
+from src.repositories.session import SessionRepository, SessionCreate, SessionFilters
 from src.repositories.session_report import SessionReportRepository
 from src.routes.sessions.datatypes import (
     CreateSessionRequest,
@@ -19,6 +19,7 @@ from src.routes.sessions.datatypes import (
     TurnRequest,
     TurnResponse,
     ReportResponse,
+    SessionResponse
 )
 from src.agents.leveling_graph.graph import build_leveling_graph
 
@@ -28,6 +29,44 @@ router = APIRouter(prefix="/sessions", tags=["sessions"])
 
 def init_app(app: FastAPI) -> None:
     app.include_router(router)
+
+
+@router.get("/", response_model=list[SessionResponse], status_code=status.HTTP_200_OK)
+async def list_sessions(
+    user_id: int | None = None,
+    document_id: int | None = None,
+    case_type: str | None = None,
+    session_status: str | None = None,
+    session_repo: SessionRepository = Depends(),
+) -> list[SessionResponse]:
+    """
+    Lista sessões com filtros opcionais.
+    """
+    try:
+        filters = SessionFilters(
+            user_id=user_id,
+            document_id=document_id,
+            case_type=case_type,
+            status=session_status,
+        )
+        sessions = await session_repo.get_all(filters)
+        return [
+            SessionResponse(
+                id=s.id,
+                user_id=s.user_id,
+                document_id=s.document_id,
+                case_type=s.case_type,
+                status=s.status,
+                started_at=s.started_at,
+                completed_at=s.completed_at
+            ) for s in sessions
+        ]
+    except Exception as e:
+        logger.error(f"Erro ao listar sessões: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao listar sessões"
+        )
 
 
 @router.post("/", response_model=CreateSessionResponse, status_code=status.HTTP_201_CREATED)

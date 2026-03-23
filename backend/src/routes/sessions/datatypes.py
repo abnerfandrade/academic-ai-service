@@ -1,4 +1,5 @@
 from typing import List
+from datetime import datetime
 from pydantic import BaseModel, Field
 
 
@@ -20,6 +21,16 @@ class TurnRequest(BaseModel):
 class TurnResponse(BaseModel):
     agent_message: str = Field(..., description="Mensagem de resposta do agente")
     session_status: str = Field(..., description="Status atual da sessão ('active' ou 'completed')")
+
+
+class SessionResponse(BaseModel):
+    id: int = Field(..., description="ID da sessão")
+    user_id: int = Field(..., description="ID do usuário")
+    document_id: int = Field(..., description="ID do documento")
+    case_type: str = Field(..., description="Tipo de case")
+    status: str = Field(..., description="Status da sessão")
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
 
 
 class QuestionReview(BaseModel):
