@@ -20,7 +20,7 @@ class TurnRequest(BaseModel):
 
 class TurnResponse(BaseModel):
     agent_message: str = Field(..., description="Mensagem de resposta do agente")
-    session_status: str = Field(..., description="Status atual da sessão ('active' ou 'completed')")
+    session_status: str = Field(..., description="Status atual da sessão ('active', 'generating_report' ou 'completed')")
 
 
 class SessionResponse(BaseModel):

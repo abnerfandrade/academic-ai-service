@@ -64,7 +64,7 @@ async def generate_report(state: LevelingState) -> Dict[str, Any]:
 
     await _persist_report_and_complete_session(session_id, report_data, answers, log)
 
-    closing_message = "Obrigado por responder! Seu relatório de nivelamento está pronto."
+    closing_message = "Seu relatório de nivelamento está pronto. Você já pode visualizar o seu resultado!"
 
     return {
         "report": report_data,

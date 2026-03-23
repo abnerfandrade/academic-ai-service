@@ -134,7 +134,7 @@ async def create_session(
 
         return CreateSessionResponse(
             session_id=session.id,
-            status="active",
+            status=session.status,
             first_message=first_message
         )
     except HTTPException:
@@ -176,6 +176,15 @@ async def process_turn(
         graph = build_leveling_graph(request.app.state.checkpointer)
         config = {"configurable": {"thread_id": f"leveling_{session_id}"}}
 
+        state_snapshot = await graph.aget_state(config)
+        next_nodes = state_snapshot.next if state_snapshot else []
+
+        if "generate_report" in next_nodes:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="O relatório está pronto para ser gerado. Chame o endpoint /generate-report em vez disso."
+            )
+
         await graph.aupdate_state(
             config,
             {"messages": [HumanMessage(content=body.student_message)]},
@@ -183,6 +192,72 @@ async def process_turn(
         )
 
         logger.info(f"Retomando leveling_graph para sessão {session_id}, turno do usuário")
+        final_state = await graph.ainvoke(None, config=config)
+
+        report_in_state = final_state.get("report")
+        
+        state_snapshot = await graph.aget_state(config)
+        next_nodes = state_snapshot.next if state_snapshot else []
+        
+        current_status = "active"
+        if report_in_state:
+            current_status = "completed"
+        elif "generate_report" in next_nodes:
+            current_status = "generating_report"
+
+        agent_message = final_state.get("messages", [])[-1].content
+
+        return TurnResponse(
+            agent_message=agent_message,
+            session_status=current_status
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        msg = f"Erro ao processar o turno para a sessão {session_id}"
+        logger.error(f"{msg}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=msg
+        )
+
+
+@router.post("/{session_id}/generate-report", response_model=TurnResponse, status_code=status.HTTP_200_OK)
+async def trigger_generate_report(
+    session_id: int,
+    request: Request,
+    session_repo: SessionRepository = Depends(),
+) -> TurnResponse:
+    """
+    Retoma a execução do grafo a partir do nó generate_report.
+    """
+    try:
+        session = await session_repo.get_by_id(session_id)
+        if not session:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Sessão não encontrada"
+            )
+
+        if session.status != "active":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="A sessão não está ativa"
+            )
+
+        graph = build_leveling_graph(request.app.state.checkpointer)
+        config = {"configurable": {"thread_id": f"leveling_{session_id}"}}
+
+        state_snapshot = await graph.aget_state(config)
+        next_nodes = state_snapshot.next if state_snapshot else []
+
+        if "generate_report" not in next_nodes:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="O relatório não está pronto para ser gerado. Responda a todas as perguntas."
+            )
+
+        logger.info(f"Retomando leveling_graph para sessão {session_id}, gerando relatório")
         final_state = await graph.ainvoke(None, config=config)
 
         report_in_state = final_state.get("report")
@@ -197,7 +272,7 @@ async def process_turn(
     except HTTPException:
         raise
     except Exception as e:
-        msg = f"Erro ao processar o turno para a sessão {session_id}"
+        msg = f"Erro ao gerar o relatório para a sessão {session_id}"
         logger.error(f"{msg}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -23,5 +23,5 @@ def route_loop(state: LevelingState) -> str:
         log.info("Ainda há perguntas. Roteando para 'ask_question'.")
         return "ask_question"
     else:
-        log.info("Todas as perguntas foram respondidas. Roteando para 'generate_report'.")
-        return "generate_report"
+        log.info("Todas as perguntas foram respondidas. Roteando para 'acknowledge_answers'.")
+        return "acknowledge_answers"
