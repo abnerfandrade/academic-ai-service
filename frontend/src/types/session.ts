@@ -1,4 +1,4 @@
-export type SessionStatus = 'active' | 'completed' | 'abandoned'
+export type SessionStatus = 'active' | 'generating_report' | 'completed' | 'abandoned'
 
 export interface SessionFilters {
   user_id?: number

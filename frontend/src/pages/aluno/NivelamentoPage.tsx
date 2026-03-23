@@ -64,7 +64,15 @@ export function NivelamentoPage() {
     try {
       const res = await sessionsApi.turn(Number(sessionId), { student_message: text })
       addMessage({ role: 'ai', content: res.data.agent_message })
-      if (res.data.session_status === 'completed') {
+      
+      if (res.data.session_status === 'generating_report') {
+        setSessionStatus('generating_report')
+        const reportRes = await sessionsApi.generateReport(Number(sessionId))
+        addMessage({ role: 'ai', content: reportRes.data.agent_message })
+        if (reportRes.data.session_status === 'completed') {
+          setSessionStatus('completed')
+        }
+      } else if (res.data.session_status === 'completed') {
         setSessionStatus('completed')
       }
     } catch {

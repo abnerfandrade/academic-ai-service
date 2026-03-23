@@ -16,6 +16,9 @@ export const sessionsApi = {
   turn: (sessionId: number, body: TurnRequest) =>
     api.post<TurnResponse>(`/sessions/${sessionId}/turn`, body),
 
+  generateReport: (sessionId: number) =>
+    api.post<TurnResponse>(`/sessions/${sessionId}/generate-report`),
+
   getReport: (sessionId: number) =>
     api.get<ReportResponse>(`/sessions/${sessionId}/report`),
 
