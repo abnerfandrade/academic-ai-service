@@ -25,6 +25,9 @@ infra-down:
 migrate:
 	PYTHONPATH=. $(ALEMBIC) upgrade head
 
+migrate-docker:
+	docker compose exec api bash -c "PYTHONPATH=. alembic upgrade head"
+
 up:
 	docker compose up -d --build
 
