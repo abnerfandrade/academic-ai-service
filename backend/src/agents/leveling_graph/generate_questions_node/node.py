@@ -13,7 +13,7 @@ async def generate_questions(state: LevelingState):
     session_id = state.get("session_id")
     document_id = state.get("document_id")
     class_name = state.get("class_name")
-    prerequisites = state.get("prerequisites")
+    prerequisites = state.get("prerequisites", [])
 
     log = logger.bind(
         graph="leveling_graph",

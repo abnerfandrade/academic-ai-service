@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import Dict, Any, List
 from datetime import datetime, timezone
 
@@ -75,11 +76,32 @@ async def generate_report(state: LevelingState) -> Dict[str, Any]:
 def _calculate_metrics(answers: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Calcula a pontuação geral e separa as tags de conceitos em fortalezas e fraquezas."""
     total_questions = len(answers)
-    correct_answers = [ans for ans in answers if ans.get("is_correct")]
+    if total_questions == 0:
+        return {"overall_score": 0.0, "strengths": [], "weaknesses": []}
 
-    overall_score = len(correct_answers) / total_questions if total_questions > 0 else 0.0
-    strengths = [ans.get("concept_tag") for ans in answers if ans.get("is_correct")]
-    weaknesses = [ans.get("concept_tag") for ans in answers if not ans.get("is_correct")]
+    correct_count = sum(1 for ans in answers if ans.get("is_correct"))
+    overall_score = correct_count / total_questions
+
+    concept_stats = defaultdict(lambda: {"total": 0, "correct": 0})
+    for ans in answers:
+        tag = ans.get("concept_tag")
+
+        if tag is None:
+            continue
+
+        concept_stats[tag]["total"] += 1
+        if ans.get("is_correct"):
+            concept_stats[tag]["correct"] += 1
+
+    strengths = []
+    weaknesses = []
+    for tag, stats in concept_stats.items():
+        accuracy = stats["correct"] / stats["total"]
+
+        if accuracy > 0.5:
+            strengths.append(tag)
+        else:
+            weaknesses.append(tag)
 
     return {
         "overall_score": overall_score,

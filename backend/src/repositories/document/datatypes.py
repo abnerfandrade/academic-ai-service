@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, Field
 
 
@@ -8,6 +8,8 @@ class DocumentCreate(BaseModel):
     filename: str = Field(..., description="Nome do documento")
     filehash: str = Field(..., description="Hash do documento enviado")
     status: str = Field(..., description="Status do documento")
+    prerequisites: Optional[List[str]] = Field(default_factory=list, description="Pré-requisitos identificados")
+    learning_objectives: Optional[List[str]] = Field(default_factory=list, description="Objetivos de aprendizado identificados")
     error_detail: Optional[str] = Field(None, description="Detalhes do erro caso o processamento falhe")
 
 
@@ -15,6 +17,8 @@ class DocumentUpdate(BaseModel):
     class_name: Optional[str] = Field(None, description="Aula a qual o documento pertence")
     filename: Optional[str] = Field(None, description="Nome do documento")
     status: Optional[str] = Field(None, description="Status do documento")
+    prerequisites: Optional[List[str]] = Field(None, description="Pré-requisitos identificados")
+    learning_objectives: Optional[List[str]] = Field(None, description="Objetivos de aprendizado identificados")
     error_detail: Optional[str] = Field(None, description="Detalhes do erro caso o processamento falhe")
 
 

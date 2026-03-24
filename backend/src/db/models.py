@@ -27,6 +27,8 @@ class Document(Base):
     filename: Mapped[str] = mapped_column(String(255), nullable=False)
     filehash: Mapped[str] = mapped_column(String(255), nullable=False)
     status: Mapped[str] = mapped_column(String(50), nullable=False)
+    prerequisites: Mapped[dict] = mapped_column(JSONB, server_default="[]", nullable=True)
+    learning_objectives: Mapped[dict] = mapped_column(JSONB, server_default="[]", nullable=True)
     error_detail: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())

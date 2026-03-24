@@ -10,20 +10,28 @@ async def run_rag_pipeline(
 ) -> None:
     filename = file_data["filename"]
     content = file_data["content"]
+    log = logger.bind(document_id=document_id, filename=filename)
+    log.info("Iniciando pipeline RAG")
 
     async with db.session() as session:
         repo = DocumentRepository(session)
 
-        await repo.update(document_id, DocumentUpdate(status="processing"))
+        await repo.update(document_id, DocumentUpdate(status="processing"), commit=True)
 
         try:
-            await pipeline.run(document_id, content, filename)
-            await repo.update(document_id, DocumentUpdate(status="completed"))
+            result = await pipeline.run(document_id, content, filename)
 
-            logger.bind(document_id=document_id, filename=filename).info("Pipeline RAG concluído com sucesso")
+            data_upd = DocumentUpdate(
+                prerequisites=result["prerequisites"],
+                learning_objectives=result["learning_objectives"],
+                status="completed",
+            )
+            await repo.update(document_id, data_upd)
+
+            log.info("Pipeline RAG concluído com sucesso")
 
         except Exception as e:
-            logger.bind(document_id=document_id, filename=filename).exception("Pipeline RAG falhou")
+            log.exception("Pipeline RAG falhou")
 
             await repo.update(
                 document_id,

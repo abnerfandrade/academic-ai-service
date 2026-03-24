@@ -124,6 +124,7 @@ async def create_session(
             "session_id": session.id,
             "document_id": doc.id,
             "class_name": doc.class_name,
+            "prerequisites": doc.prerequisites,
         }
         config = {"configurable": {"thread_id": f"leveling_{session.id}"}}
 

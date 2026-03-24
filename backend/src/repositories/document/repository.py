@@ -54,7 +54,7 @@ class DocumentRepository(BaseRepository[Document, DocumentCreate, DocumentUpdate
         except Exception as e:
             raise Exception(f"Erro ao buscar documentos: {e}") from e
 
-    async def update(self, id: int, data: DocumentUpdate) -> Document:
+    async def update(self, id: int, data: DocumentUpdate, *, commit: bool = False) -> Document:
         try:
             doc = await self.get_by_id(id)
             if doc is None:
@@ -65,6 +65,9 @@ class DocumentRepository(BaseRepository[Document, DocumentCreate, DocumentUpdate
 
             await self.session.flush()
             await self.session.refresh(doc)
+
+            if commit:
+                await self.session.commit()
 
             return doc
         except DocumentNotFoundError:
