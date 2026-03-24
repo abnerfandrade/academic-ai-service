@@ -1,10 +1,13 @@
+import os
 from contextlib import asynccontextmanager
+
+from src.core.config import settings
+settings.configure_langsmith()
 
 from fastapi import FastAPI
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 
 from src import middlewares, routes
-from src.core.config import settings
 from src.core.logger import setup_logger
 
 

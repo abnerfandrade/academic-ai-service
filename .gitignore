@@ -27,6 +27,7 @@ wheels/
 .nox/
 .coverage
 htmlcov/
+.langgraph_api/
 
 # Node / React
 node_modules/

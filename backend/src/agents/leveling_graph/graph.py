@@ -1,3 +1,4 @@
+from typing import Optional
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 
@@ -11,7 +12,7 @@ from .acknowledge_answers_node.node import acknowledge_answers
 from .generate_report_node.node import generate_report
 
 
-def build_leveling_graph(checkpointer: AsyncPostgresSaver):
+def build_leveling_graph(checkpointer: Optional[AsyncPostgresSaver] = None):
     builder = StateGraph(LevelingState)
 
     builder.add_node("extract_prerequisites", extract_prerequisites)

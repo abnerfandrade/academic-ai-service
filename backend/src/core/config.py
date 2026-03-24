@@ -1,3 +1,4 @@
+import os
 from typing import Literal
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -27,6 +28,18 @@ class Settings(BaseSettings):
     CHUNK_OVERLAP_TOKENS: int = Field(default=154, description="Sobreposição do chunk em tokens")
     MAX_UPLOAD_SIZE_MB: int = Field(default=10, description="Tamanho máximo de upload em MB")
     LEVELING_NUM_QUESTIONS: int = Field(default=5, description="Número de questões na etapa de nivelamento")
+
+    LANGSMITH_TRACING: bool = Field(default=False, description="Habilitar tracing no LangSmith")
+    LANGSMITH_API_KEY: str = Field("", description="Chave de API do LangSmith")
+    LANGSMITH_PROJECT: str = Field("", description="Projeto no LangSmith")
+    LANGSMITH_ENDPOINT: str = Field("", description="Endpoint do LangSmith")
+
+    def configure_langsmith(self) -> None:
+        """Configura as variáveis de ambiente para LangSmith."""
+        os.environ["LANGSMITH_TRACING"] = str(self.LANGSMITH_TRACING).lower()
+        os.environ["LANGSMITH_API_KEY"] = self.LANGSMITH_API_KEY
+        os.environ["LANGSMITH_PROJECT"] = self.LANGSMITH_PROJECT
+        os.environ["LANGSMITH_ENDPOINT"] = self.LANGSMITH_ENDPOINT
 
 
 settings = Settings()
