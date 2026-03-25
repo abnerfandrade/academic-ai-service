@@ -1,7 +1,7 @@
 from typing import Dict, Any, List
 from langchain_core.messages import HumanMessage
+from loguru import logger
 
-from src.core.logger import logger
 from src.agents.leveling_graph.state import LevelingState
 from src.db.database import db
 from src.repositories.session_message import SessionMessageRepository, SessionMessageCreate

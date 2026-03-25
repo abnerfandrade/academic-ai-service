@@ -6,9 +6,9 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_qdrant import FastEmbedSparse, QdrantVectorStore, RetrievalMode
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, SparseVectorParams
+from loguru import logger
 
 from src.core.config import settings
-from src.core.logger import logger
 
 
 def get_embeddings_client(for_query: bool = False) -> Embeddings:

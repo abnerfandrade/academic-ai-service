@@ -4,24 +4,24 @@ from qdrant_client import models
 from loguru import logger
 
 from src.services.vector_store.retriever import VectorStoreRetriever
-from .state import GenerateReportState
+from src.agents.consolidation_graph.state import ConsolidationState
 
 
 @tool
-async def search_document_chunks_for_concepts(queries: list[str], runtime: ToolRuntime[None, GenerateReportState]) -> str:
+async def search_chunks_for_learning_objectives(queries: list[str], runtime: ToolRuntime[None, ConsolidationState]) -> str:
     """
     Busca chunks de documentos referentes a aulas a partir de uma lista de queries semânticas.
-    Use esta ferramenta para encontrar conceitos e tópicos do material da aula (documento) 
-    para poder embasar e formular o relatório sobre as fraquezas e pontos fortes do aluno.
-    Envie uma lista contendo queries otimizadas e abrangentes com base nos conceitos abordados.
+    Use esta ferramenta para encontrar o conteúdo do material da aula relacionado aos objetivos de aprendizado.
+    Isso fornecerá o contexto necessário para que você possa gerar perguntas consistentes e relevantes.
+    Envie uma lista contendo queries otimizadas e abrangentes com base nos objetivos de aprendizado.
     """
     session_id = runtime.state.get("session_id")
     document_id = runtime.state.get("document_id")
     class_name = runtime.state.get("class_name")
 
     log = logger.bind(
-        graph="leveling_graph",
-        node="generate_report_search_chunks",
+        graph="consolidation_graph",
+        node="search_chunks_for_learning_objectives",
         session_id=session_id,
         document_id=document_id,
         class_name=class_name

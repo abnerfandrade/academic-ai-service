@@ -21,7 +21,7 @@ from src.routes.sessions.datatypes import (
     ReportResponse,
     SessionResponse
 )
-from src.agents.leveling_graph.graph import build_leveling_graph
+from src.routes.sessions.dependencies import get_graph
 
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
@@ -102,33 +102,40 @@ async def create_session(
                 detail="documento ainda não está processado"
             )
 
-        existing_session = await session_repo.get_by_user_id_and_document_id(body.user_id, body.document_id)
+        existing_session = await session_repo.get_existing_session(body.user_id, body.document_id, body.case_type)
         if existing_session:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT, 
-                detail="sessão já existe para este usuário e documento",
+                detail="sessão já existe para este usuário, documento e tipo de caso",
             )
 
         session_data = SessionCreate(
             user_id=body.user_id,
             document_id=body.document_id,
-            case_type="case1",
+            case_type=body.case_type,
             status="active",
         )
         session = await session_repo.create(session_data, commit=True)
 
-        graph = build_leveling_graph(request.app.state.checkpointer)
+        graph = get_graph(body.case_type, request)
 
         initial_state = {
             "messages": [],
             "session_id": session.id,
             "document_id": doc.id,
             "class_name": doc.class_name,
-            "prerequisites": doc.prerequisites,
         }
-        config = {"configurable": {"thread_id": f"leveling_{session.id}"}}
+        if body.case_type == "case2":
+            initial_state["learning_objectives"] = doc.learning_objectives
+            thread_id = f"consolidation_{session.id}"
+            logger.info(f"Executando consolidation_graph para sessão {session.id}")
+        else:
+            initial_state["prerequisites"] = doc.prerequisites
+            thread_id = f"leveling_{session.id}"
+            logger.info(f"Executando leveling_graph para sessão {session.id}")
 
-        logger.info(f"Executando leveling_graph para sessão {session.id}")
+        config = {"configurable": {"thread_id": thread_id}}
+
         final_state = await graph.ainvoke(initial_state, config=config)
 
         first_message = final_state.get("messages", [])[-1].content
@@ -174,8 +181,13 @@ async def process_turn(
                 detail="A sessão não está ativa"
             )
 
-        graph = build_leveling_graph(request.app.state.checkpointer)
-        config = {"configurable": {"thread_id": f"leveling_{session_id}"}}
+        graph = get_graph(session.case_type, request)
+        if session.case_type == "case2":
+            thread_id = f"consolidation_{session_id}"
+        else:
+            thread_id = f"leveling_{session_id}"
+
+        config = {"configurable": {"thread_id": thread_id}}
 
         state_snapshot = await graph.aget_state(config)
         next_nodes = state_snapshot.next if state_snapshot else []
@@ -192,7 +204,7 @@ async def process_turn(
             as_node="ask_question",
         )
 
-        logger.info(f"Retomando leveling_graph para sessão {session_id}, turno do usuário")
+        logger.info(f"Retomando grafo ({session.case_type}) para sessão {session_id}, turno do usuário")
         final_state = await graph.ainvoke(None, config=config)
 
         report_in_state = final_state.get("report")
@@ -246,8 +258,13 @@ async def trigger_generate_report(
                 detail="A sessão não está ativa"
             )
 
-        graph = build_leveling_graph(request.app.state.checkpointer)
-        config = {"configurable": {"thread_id": f"leveling_{session_id}"}}
+        graph = get_graph(session.case_type, request)
+        if session.case_type == "case2":
+            thread_id = f"consolidation_{session_id}"
+        else:
+            thread_id = f"leveling_{session_id}"
+
+        config = {"configurable": {"thread_id": thread_id}}
 
         state_snapshot = await graph.aget_state(config)
         next_nodes = state_snapshot.next if state_snapshot else []
@@ -258,7 +275,7 @@ async def trigger_generate_report(
                 detail="O relatório não está pronto para ser gerado. Responda a todas as perguntas."
             )
 
-        logger.info(f"Retomando leveling_graph para sessão {session_id}, gerando relatório")
+        logger.info(f"Retomando grafo ({session.case_type}) para sessão {session_id}, gerando relatório")
         final_state = await graph.ainvoke(None, config=config)
 
         report_in_state = final_state.get("report")

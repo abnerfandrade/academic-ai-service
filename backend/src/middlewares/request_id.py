@@ -4,9 +4,9 @@ from typing import Awaitable, Callable
 from http import HTTPStatus
 from fastapi import Request
 from starlette.responses import Response
+from loguru import logger
 
 from src.core.contexts import set_request_id
-from src.core.logger import logger
 
 
 async def middleware(

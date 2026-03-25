@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     CHUNK_OVERLAP_TOKENS: int = Field(default=154, description="Sobreposição do chunk em tokens")
     MAX_UPLOAD_SIZE_MB: int = Field(default=10, description="Tamanho máximo de upload em MB")
     LEVELING_NUM_QUESTIONS: int = Field(default=5, description="Número de questões na etapa de nivelamento")
+    CONSOLIDATION_NUM_QUESTIONS: int = Field(default=10, description="Número de questões na etapa de consolidação")
 
     LANGSMITH_TRACING: bool = Field(default=False, description="Habilitar tracing no LangSmith")
     LANGSMITH_API_KEY: str = Field("", description="Chave de API do LangSmith")

@@ -2,9 +2,9 @@ from textwrap import dedent
 from pydantic import BaseModel, Field
 from typing import List
 from langchain_core.prompts import ChatPromptTemplate
+from loguru import logger
 
 from src.agents.llm import get_llm
-from src.core.logger import logger
 
 
 class DocumentObjectives(BaseModel):

@@ -18,7 +18,7 @@ class VectorStoreRetriever:
             results = self.vector_store.similarity_search(
                 query, k=k, filter=filter, score_threshold=score_threshold
             )
-            self.logger.info(f"{len(results)} documentos recuperados")
+            self.logger.debug(f"{len(results)} documentos recuperados")
             return results
 
         except Exception as e:

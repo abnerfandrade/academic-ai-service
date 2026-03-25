@@ -87,14 +87,15 @@ class SessionRepository(BaseRepository[Session, SessionCreate, SessionUpdate, Se
         except Exception as e:
             raise SessionDeleteError(f"Erro ao deletar sessão {id}: {str(e)}")
 
-    async def get_by_user_id_and_document_id(self, user_id: int, document_id: int) -> Optional[Session]:
+    async def get_existing_session(self, user_id: int, document_id: int, case_type: str) -> Optional[Session]:
         try:
             query = select(Session).where(
                 Session.user_id == user_id,
-                Session.document_id == document_id
+                Session.document_id == document_id,
+                Session.case_type == case_type
             )
             result = await self.session.execute(query)
 
             return result.scalar_one_or_none()
         except Exception as e:
-            raise Exception(f"Erro ao buscar a sessão para o usuário {user_id} e documento {document_id}: {str(e)}")
+            raise Exception(f"Erro ao buscar a sessão para o usuário {user_id}, documento {document_id} e tipo de caso {case_type}: {str(e)}")

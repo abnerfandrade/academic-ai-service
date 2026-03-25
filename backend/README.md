@@ -24,7 +24,8 @@ backend/
 ├── alembic/                 # Migrações do banco de dados (Alembic)
 ├── src/
 │   ├── agents/              # Lógica de agentes de IA e workflows LangGraph
-│   │   └── leveling_graph/  # Fluxo de nivelamento acadêmico (LangGraph)
+│   │   ├── leveling_graph/      # Fluxo de nivelamento acadêmico (LangGraph)
+│   │   └── consolidation_graph/ # Fluxo de consolidação de aprendizado (LangGraph)
 │   ├── core/                # Configurações gerais, logs, variáveis de ambiente
 │   ├── db/                  # Conexão com o banco de dados e mapeamento de modelos
 │   ├── middlewares/         # Middlewares FastAPI (ex: request_id)
@@ -40,9 +41,12 @@ backend/
 └── requirements.txt         # Dependências do Python
 ```
 
-## 🧠 Workflow LangGraph (Leveling Graph)
+## 🧠 Workflows LangGraph (Agentes de IA)
 
-O coração da interação inteligente do sistema reside no fluxo do `LevelingGraph` (`src/agents/leveling_graph/`). Trata-se de uma máquina de estados gerida pelo LangGraph que avalia o conhecimento de um usuário através de um fluxo conversacional atualizado:
+O coração da interação inteligente do sistema agora conta com dois fluxos principais, gerenciados pelo LangGraph. Ambos funcionam como máquinas de estado conversacionais assíncronas, cujos estados são salvos de forma persistente no PostgreSQL (`AsyncPostgresSaver`), permitindo interrupções (human-in-the-loop).
+
+### 1. Leveling Graph (`src/agents/leveling_graph/`)
+Avalia o conhecimento prévio de um usuário antes do início de um módulo ou aula:
 
 1. **`generate_questions`**: Injeta os pré-requisitos diretamente no estado inicial a partir da tabela `documents` e formula as questões para testar o usuário.
 2. **`ask_question`**: Apresenta a questão ao usuário. O fluxo **pausa (interrupt)** aqui para aguardar a resposta.
@@ -53,7 +57,13 @@ O coração da interação inteligente do sistema reside no fluxo do `LevelingGr
 5. **`acknowledge_answers`**: Confirma e dá feedback sobre as respostas. O fluxo **pausa (interrupt)** novamente aqui.
 6. **`generate_report`**: Gera um relatório final consolidando a performance e o nivelamento do usuário.
 
-*Nota: O estado do grafo é salvo de forma persistente no PostgreSQL através do `AsyncPostgresSaver`, permitindo sessões assíncronas duradouras com checkpointer.*
+### 2. Consolidation Graph (`src/agents/consolidation_graph/`) *(Novo)*
+Avalia se o usuário **compreendeu** o conteúdo de uma aula que acabou de assistir:
+
+1. **`generate_questions`**: Utiliza a tool `search_chunks_for_learning_objectives` para buscar o conteúdo da aula no banco vetorial (Qdrant) com base nos **objetivos de aprendizado** mapeados. Com esse contexto, formula questões focadas em compreensão e aplicação.
+2. O restante do fluxo segue a mesma arquitetura de interrupção e avaliação do Leveling Graph (`ask_question` ➔ `evaluate_answer` ➔ `route_loop` ➔ `acknowledge_answers` ➔ `generate_report`).
+
+*(O ambiente de desenvolvimento de ambos os grafos está configurado no arquivo `langgraph.json` e pode ser visualizado e debugado via LangGraph Studio).*
 
 ## 📚 Pipeline RAG (Retrieval-Augmented Generation)
 

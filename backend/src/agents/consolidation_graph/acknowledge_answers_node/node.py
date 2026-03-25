@@ -1,25 +1,25 @@
-from langchain_core.messages import AIMessage
 from loguru import logger
+from langchain_core.messages import AIMessage
 
-from src.agents.leveling_graph.state import LevelingState
+from src.agents.consolidation_graph.state import ConsolidationState
 from src.db.database import db
 from src.repositories.session_message import SessionMessageRepository, SessionMessageCreate
 
 
-async def acknowledge_answers(state: LevelingState):
+async def acknowledge_answers(state: ConsolidationState):
     """
     Node que apenas retorna uma mensagem de agradecimento informando
-    que o relatório está sendo gerado.
+    que o diagnóstico está sendo gerado.
     """
     session_id = state.get("session_id")
     log = logger.bind(
-        graph="leveling_graph",
+        graph="consolidation_graph",
         node="acknowledge_answers",
         session_id=session_id
     )
-    log.info("Agradecendo pelas respostas. Relatório será gerado.")
+    log.info("Agradecendo pelas respostas. O diagnóstico será gerado.")
 
-    content = "Obrigado por responder a todas as perguntas! Estamos gerando o seu relatório..."
+    content = "Obrigado por responder a todas as perguntas! Estamos gerando o seu diagnóstico..."
     message = AIMessage(content=content)
 
     await _persist_session_message(session_id, content, log)

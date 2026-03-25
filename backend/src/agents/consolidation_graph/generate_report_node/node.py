@@ -2,10 +2,10 @@ from collections import defaultdict
 from typing import Dict, Any, List
 from datetime import datetime, timezone
 
-from langchain_core.messages import AIMessage, HumanMessage
 from loguru import logger
+from langchain_core.messages import AIMessage, HumanMessage
 
-from src.agents.leveling_graph.state import LevelingState
+from src.agents.consolidation_graph.state import ConsolidationState
 from src.db.database import db
 from src.repositories.session_report.repository import SessionReportRepository
 from src.repositories.session_report.datatypes import SessionReportCreate
@@ -15,40 +15,55 @@ from src.repositories.session.datatypes import SessionUpdate
 from .agent import get_generate_report_agent
 
 
-async def generate_report(state: LevelingState) -> Dict[str, Any]:
+async def generate_report(state: ConsolidationState) -> Dict[str, Any]:
     """
-    Node do LangGraph responsável por gerar o relatório final de nivelamento,
-    avaliando os pontos fortes e fracos do aluno e persistindo o resultado.
+    Node do LangGraph responsável por gerar o relatório final de consolidação,
+    avaliando os objetivos dominados e a revisar, e persistindo o resultado.
     """
     session_id = state.get("session_id")
     document_id = state.get("document_id")
     class_name = state.get("class_name", "")
+    learning_objectives = state.get("learning_objectives", [])
     answers = state.get("answers", [])
 
     log = logger.bind(
-        graph="leveling_graph",
+        graph="consolidation_graph",
         node="generate_report",
         session_id=session_id,
         document_id=document_id
     )
-    log.info("Iniciando geração de relatório")
+    log.info("Iniciando geração de relatório de consolidação")
 
     if not answers:
         log.warning("Nenhuma resposta encontrada no estado para gerar relatório.")
         return {}
 
-    metrics = _calculate_metrics(answers)
+    metrics = _calculate_metrics(answers, learning_objectives)
     strengths = metrics["strengths"]
     weaknesses = metrics["weaknesses"]
-    log.info(f"Pontuação geral: {metrics['overall_score']}. Fortalezas: {len(strengths)}, Fraquezas: {len(weaknesses)}")
+    overall_score = metrics["overall_score"]
+    
+    log.info(f"Pontuação geral: {overall_score}. Dominados: {len(strengths)}, A Revisar: {len(weaknesses)}")
 
-    weaknesses_str = ", ".join(weaknesses) if weaknesses else "Nenhuma fraqueza identificada. O aluno dominou todos os pré-requisitos testados!"
-    strengths_str = ", ".join(strengths) if strengths else "Nenhuma fortaleza claramente identificada neste questionário."
+    mastered_objectives_str = "\n".join([f"- {obj}" for obj in strengths]) if strengths else "Nenhum objetivo dominado."
 
-    agent = get_generate_report_agent(class_name, weaknesses_str, strengths_str)
+    to_review_parts = []
+    for w in weaknesses:
+        justifications = [ans.get("justification", "") for ans in answers if ans.get("concept_tag") == w and not ans.get("is_correct")]
+        justification_text = " ".join(justifications) if justifications else "Compreensão incompleta."
+        to_review_parts.append(f"- **{w}**\n  Justificativa: {justification_text}")
+
+    to_review_objectives_str = "\n".join(to_review_parts) if to_review_parts else "Nenhum objetivo a revisar. Excelente!"
+
+    agent = get_generate_report_agent(
+        class_name=class_name,
+        overall_score=overall_score,
+        mastered_objectives_str=mastered_objectives_str,
+        to_review_objectives_str=to_review_objectives_str
+    )
 
     input_data = {
-        "messages": [HumanMessage(content="Gere as recomendações e o relatório de nivelamento considerando os pontos fortes e fracos do aluno.")],
+        "messages": [HumanMessage(content="Gere o relatório de consolidação de conhecimento.")],
         "session_id": session_id,
         "document_id": document_id,
         "class_name": class_name
@@ -58,35 +73,28 @@ async def generate_report(state: LevelingState) -> Dict[str, Any]:
     recommendations_markdown = result['structured_response'].recommendations
 
     report_data = {
-        **metrics,
+        "overall_score": overall_score,
+        "strengths": strengths,
+        "weaknesses": weaknesses,
         "recommendations": recommendations_markdown,
-        "questions": answers
     }
 
     await _persist_report_and_complete_session(session_id, report_data, answers, log)
 
-    closing_message = "Seu relatório de nivelamento está pronto. Você já pode visualizar o seu resultado!"
+    closing_message = "Seu relatório de consolidação está pronto. Você já pode visualizar o seu diagnóstico pedagógico!"
 
     return {
-        "report": report_data,
+        "report": {**report_data, "questions": answers},
         "messages": [AIMessage(content=closing_message)]
     }
 
 
-def _calculate_metrics(answers: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Calcula a pontuação geral e separa as tags de conceitos em fortalezas e fraquezas."""
-    total_questions = len(answers)
-    if total_questions == 0:
-        return {"overall_score": 0.0, "strengths": [], "weaknesses": []}
-
-    correct_count = sum(1 for ans in answers if ans.get("is_correct"))
-    overall_score = correct_count / total_questions
-
+def _calculate_metrics(answers: List[Dict[str, Any]], learning_objectives: List[str]) -> Dict[str, Any]:
+    """Calcula a pontuação geral baseada nos objetivos dominados vs total de objetivos avaliados."""
     concept_stats = defaultdict(lambda: {"total": 0, "correct": 0})
     for ans in answers:
         tag = ans.get("concept_tag")
-
-        if tag is None:
+        if not tag:
             continue
 
         concept_stats[tag]["total"] += 1
@@ -95,13 +103,18 @@ def _calculate_metrics(answers: List[Dict[str, Any]]) -> Dict[str, Any]:
 
     strengths = []
     weaknesses = []
-    for tag, stats in concept_stats.items():
-        accuracy = stats["correct"] / stats["total"]
 
+    tested_objectives = list(concept_stats.keys())
+    for tag in tested_objectives:
+        stats = concept_stats[tag]
+        accuracy = stats["correct"] / stats["total"]
         if accuracy > 0.5:
             strengths.append(tag)
         else:
             weaknesses.append(tag)
+
+    total_objectives = len(tested_objectives)
+    overall_score = len(strengths) / total_objectives if total_objectives > 0 else 0.0
 
     return {
         "overall_score": overall_score,
@@ -126,7 +139,7 @@ async def _persist_report_and_complete_session(
             await report_repo.create(
                 SessionReportCreate(
                     session_id=session_id,
-                    case_type="case1",
+                    case_type="case2",
                     questions=answers,
                     overall_score=report_data["overall_score"],
                     strengths=report_data["strengths"],
@@ -144,7 +157,7 @@ async def _persist_report_and_complete_session(
                 )
             )
 
-        log.info("Relatório salvo e sessão marcada como 'completed'.")
+        log.info("Relatório de consolidação salvo e sessão marcada como 'completed'.")
     except Exception as e:
-        log.error(f"Erro ao persistir o relatório: {e}")
+        log.error(f"Erro ao persistir o relatório de consolidação: {e}")
         raise

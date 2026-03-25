@@ -2,8 +2,7 @@ import io
 import asyncio
 from pathlib import Path
 from markitdown import MarkItDown
-
-from src.core.logger import logger
+from loguru import logger
 
 
 class DocumentExtractor:

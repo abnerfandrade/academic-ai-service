@@ -1,9 +1,9 @@
 from loguru import logger
 
-from src.agents.leveling_graph.state import LevelingState
+from src.agents.consolidation_graph.state import ConsolidationState
 
 
-def route_loop(state: LevelingState) -> str:
+def route_loop(state: ConsolidationState) -> str:
     """
     Função condicional (edge) do LangGraph que decide o próximo passo:
     continuar perguntando ('ask_question') ou finalizar ('generate_report').
@@ -13,7 +13,7 @@ def route_loop(state: LevelingState) -> str:
     session_id = state.get("session_id")
 
     log = logger.bind(
-        graph="leveling_graph",
+        graph="consolidation_graph",
         node="route_loop",
         session_id=session_id,
         current_index=current_index,

@@ -1,7 +1,8 @@
 {
   "dependencies": ["."],
   "graphs": {
-    "leveling_agent": "src/agents/leveling_graph/studio.py:graph"
+    "leveling_agent": "src/agents/leveling_graph/studio.py:graph",
+    "consolidation_agent": "src/agents/consolidation_graph/studio.py:graph"
   },
   "env": ".env"
 }

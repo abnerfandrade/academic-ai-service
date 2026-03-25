@@ -1,6 +1,6 @@
 import asyncio
+from loguru import logger
 
-from src.core.logger import logger
 from src.services.rag_pipeline.extractor import DocumentExtractor
 from src.services.rag_pipeline.chunker import TokenChunker
 from src.services.rag_pipeline.embedder import Embedder

@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 class CreateSessionRequest(BaseModel):
     user_id: int = Field(..., description="ID do usuário")
     document_id: int = Field(..., description="ID do documento")
+    case_type: str = Field("case1", description="Tipo do caso (case1 ou case2)")
 
 
 class CreateSessionResponse(BaseModel):

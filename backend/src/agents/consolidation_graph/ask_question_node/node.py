@@ -1,14 +1,14 @@
 from typing import Any
 
 from langchain_core.messages import AIMessage
+from loguru import logger
 
-from src.core.logger import logger
-from src.agents.leveling_graph.state import LevelingState
+from src.agents.consolidation_graph.state import ConsolidationState
 from src.db.database import db
 from src.repositories.session_message import SessionMessageRepository, SessionMessageCreate
 
 
-async def ask_question(state: LevelingState):
+async def ask_question(state: ConsolidationState):
     """
     Node do LangGraph responsável por emitir a pergunta atual para o aluno
     e persistir essa mensagem no banco de dados.
@@ -20,7 +20,7 @@ async def ask_question(state: LevelingState):
     current_index = state.get("current_index", 0)
 
     log = logger.bind(
-        graph="leveling_graph",
+        graph="consolidation_graph",
         node="ask_question",
         session_id=session_id,
         document_id=document_id,

@@ -1,22 +1,22 @@
 from langchain_core.messages import HumanMessage
 from loguru import logger
 
-from src.agents.leveling_graph.state import LevelingState
+from src.agents.consolidation_graph.state import ConsolidationState
 from .agent import get_generate_questions_agent
 
 
-async def generate_questions(state: LevelingState):
+async def generate_questions(state: ConsolidationState):
     """
     Node do LangGraph responsável por gerar uma lista de perguntas
-    baseadas nos pré-requisitos da aula.
+    baseadas nos objetivos de aprendizado da aula.
     """
     session_id = state.get("session_id")
     document_id = state.get("document_id")
     class_name = state.get("class_name")
-    prerequisites = state.get("prerequisites", [])
+    learning_objectives = state.get("learning_objectives", [])
 
     log = logger.bind(
-        graph="leveling_graph",
+        graph="consolidation_graph",
         node="generate_questions",
         session_id=session_id,
         document_id=document_id,
@@ -24,11 +24,16 @@ async def generate_questions(state: LevelingState):
     )
     log.info(f"Iniciando geração de perguntas")
 
-    prereqs_str = "\n".join([f"- {p}" for p in prerequisites])
-    agent = get_generate_questions_agent(prereqs_str)
+    agent = get_generate_questions_agent()
+
+    learning_objectives_str = "\n".join([f"- {lo}" for lo in learning_objectives])
+    message = HumanMessage(content=f"Objetivos de aprendizado:\n{learning_objectives_str}")
 
     input_data = {
-        "messages": [HumanMessage(content="Analise os prerequisitos da aula e gere perguntas.")]
+        "messages": [message],
+        "session_id": session_id,
+        "document_id": document_id,
+        "class_name": class_name
     }
     result = await agent.ainvoke(input_data)
 

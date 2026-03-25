@@ -1,27 +1,27 @@
 import asyncio
+from loguru import logger
 from langchain.tools import tool, ToolRuntime
 from qdrant_client import models
-from loguru import logger
 
 from src.services.vector_store.retriever import VectorStoreRetriever
 from .state import GenerateReportState
 
 
 @tool
-async def search_document_chunks_for_concepts(queries: list[str], runtime: ToolRuntime[None, GenerateReportState]) -> str:
+async def search_chunks_for_revision(queries: list[str], runtime: ToolRuntime[None, GenerateReportState]) -> str:
     """
-    Busca chunks de documentos referentes a aulas a partir de uma lista de queries semânticas.
-    Use esta ferramenta para encontrar conceitos e tópicos do material da aula (documento) 
-    para poder embasar e formular o relatório sobre as fraquezas e pontos fortes do aluno.
-    Envie uma lista contendo queries otimizadas e abrangentes com base nos conceitos abordados.
+    Busca chunks de documentos referentes à aula a partir de uma lista de queries semânticas.
+    Use esta ferramenta para recuperar trechos do material ensinado (documento) que correspondem aos 
+    objetivos de aprendizado que o aluno precisa revisar.
+    Envie uma lista de queries otimizadas baseadas nos objetivos a revisar.
     """
     session_id = runtime.state.get("session_id")
     document_id = runtime.state.get("document_id")
     class_name = runtime.state.get("class_name")
 
     log = logger.bind(
-        graph="leveling_graph",
-        node="generate_report_search_chunks",
+        graph="consolidation_graph",
+        node="search_chunks_for_revision",
         session_id=session_id,
         document_id=document_id,
         class_name=class_name
@@ -70,7 +70,7 @@ async def search_document_chunks_for_concepts(queries: list[str], runtime: ToolR
     if not deduped_chunks:
         if error_count > 0:
             return "Ocorreu um erro temporário no banco de dados vetorial durante a busca. Por favor, tente novamente."
-        return "Nenhum chunk encontrado para estas consultas."
+        return "Nenhum chunk específico encontrado na aula para estas consultas."
 
     deduped_chunks.sort(key=lambda d: d.metadata.get("chunk_index", 0))
 
