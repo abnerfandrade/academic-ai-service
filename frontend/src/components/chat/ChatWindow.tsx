@@ -6,14 +6,19 @@ interface Props {
   messages: ChatMessage[]
   isSending: boolean
   isCreatingSession?: boolean
+  caseType?: 'case1' | 'case2'
 }
 
-export function ChatWindow({ messages, isSending, isCreatingSession }: Props) {
+export function ChatWindow({ messages, isSending, isCreatingSession, caseType = 'case1' }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isSending, isCreatingSession])
+
+  const loadingMessage = caseType === 'case2' 
+    ? 'Gerando perguntas de consolidação...' 
+    : 'Gerando perguntas de nivelamento...'
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -23,7 +28,7 @@ export function ChatWindow({ messages, isSending, isCreatingSession }: Props) {
       {isCreatingSession && (
         <div className="flex justify-start">
           <div className="bg-muted rounded-2xl px-4 py-3 text-sm text-muted-foreground italic rounded-tl-none animate-pulse">
-            Gerando perguntas de nivelamento...
+            {loadingMessage}
           </div>
         </div>
       )}

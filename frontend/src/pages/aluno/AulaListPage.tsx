@@ -24,18 +24,18 @@ export function AulaListPage() {
     }
   }, [user, navigate])
 
-  const handleStart = async (documentId: number) => {
+  const handleStart = async (documentId: number, caseType: 'case1' | 'case2') => {
     if (!user) {
       toast.error('Selecione um usuário antes de iniciar.')
       navigate('/usuarios', { state: { redirectTo: '/aluno' } })
       return
     }
-    // Redireciona imediatamente para a página de nivelamento passando o documentId
-    navigate(`/aluno/nivelamento/novo`, { state: { documentId } })
+    // Redireciona imediatamente para a página de sessão passando o documentId
+    navigate(`/aluno/sessao/novo`, { state: { documentId, caseType } })
   }
 
   const handleViewReport = (sessionId: number) => {
-    navigate(`/aluno/nivelamento/${sessionId}/relatorio`)
+    navigate(`/aluno/sessao/${sessionId}/relatorio`)
   }
 
   return (
@@ -58,12 +58,12 @@ export function AulaListPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {documents?.map((doc) => {
-            const docSession = sessions?.find(s => s.document_id === doc.id)
+            const docSessions = sessions?.filter(s => s.document_id === doc.id) || []
             return (
               <DocumentCard
                 key={doc.id}
                 document={doc}
-                session={docSession}
+                sessions={docSessions}
                 onStart={handleStart}
                 onViewReport={handleViewReport}
               />

@@ -11,7 +11,7 @@ import type {
 
 export const sessionsApi = {
   create: (body: CreateSessionRequest) =>
-    api.post<CreateSessionResponse>('/sessions', body),
+    api.post<CreateSessionResponse>('/sessions/', body),
 
   turn: (sessionId: number, body: TurnRequest) =>
     api.post<TurnResponse>(`/sessions/${sessionId}/turn`, body),

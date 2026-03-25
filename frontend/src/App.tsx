@@ -6,7 +6,7 @@ import { LandingPage } from './pages/LandingPage'
 import { UploadPage } from './pages/professor/UploadPage'
 import { DocumentsPage } from './pages/professor/DocumentsPage'
 import { AulaListPage } from './pages/aluno/AulaListPage'
-import { NivelamentoPage } from './pages/aluno/NivelamentoPage'
+import { SessionPage } from './pages/aluno/SessionPage'
 import { RelatorioPage } from './pages/aluno/RelatorioPage'
 import { UsuariosPage } from './pages/usuarios/UsuariosPage'
 
@@ -26,8 +26,8 @@ export function App() {
           <Route path="/professor/upload" element={<UploadPage />} />
           <Route path="/professor/documentos" element={<DocumentsPage />} />
           <Route path="/aluno" element={<AulaListPage />} />
-          <Route path="/aluno/nivelamento/:sessionId" element={<NivelamentoPage />} />
-          <Route path="/aluno/nivelamento/:sessionId/relatorio" element={<RelatorioPage />} />
+          <Route path="/aluno/sessao/:sessionId" element={<SessionPage />} />
+          <Route path="/aluno/sessao/:sessionId/relatorio" element={<RelatorioPage />} />
           <Route path="/usuarios" element={<UsuariosPage />} />
         </Routes>
       </BrowserRouter>

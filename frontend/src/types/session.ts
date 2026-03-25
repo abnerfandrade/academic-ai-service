@@ -4,7 +4,7 @@ export interface SessionFilters {
   user_id?: number
   document_id?: number
   case_type?: string
-  status?: string
+  session_status?: string
 }
 
 export interface SessionResponse {
@@ -17,9 +17,15 @@ export interface SessionResponse {
   completed_at: string | null
 }
 
+export interface SessionStateResponse {
+  session: SessionResponse
+  messages: ChatMessage[]
+}
+
 export interface CreateSessionRequest {
   user_id: number
   document_id: number
+  case_type?: 'case1' | 'case2'
 }
 
 export interface CreateSessionResponse {

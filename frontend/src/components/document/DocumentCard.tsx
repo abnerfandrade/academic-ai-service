@@ -7,14 +7,20 @@ import type { SessionResponse } from '../../types/session'
 
 interface Props {
   document: DocumentResponse
-  session?: SessionResponse
-  onStart: (documentId: number) => void
+  sessions?: SessionResponse[]
+  onStart: (documentId: number, caseType: 'case1' | 'case2') => void
   onViewReport?: (sessionId: number) => void
 }
 
-export function DocumentCard({ document, session, onStart, onViewReport }: Props) {
-  const isCompleted = session?.status === 'completed'
-  const isActive = session?.status === 'active'
+export function DocumentCard({ document, sessions = [], onStart, onViewReport }: Props) {
+  const sessionCase1 = sessions.find(s => s.case_type === 'case1')
+  const sessionCase2 = sessions.find(s => s.case_type === 'case2')
+
+  const isCompleted1 = sessionCase1?.status === 'completed'
+  const isActive1 = sessionCase1?.status === 'active'
+
+  const isCompleted2 = sessionCase2?.status === 'completed'
+  const isActive2 = sessionCase2?.status === 'active'
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -31,20 +37,42 @@ export function DocumentCard({ document, session, onStart, onViewReport }: Props
           {new Date(document.created_at).toLocaleDateString('pt-BR')}
         </p>
       </CardContent>
-      <CardFooter>
-        {isCompleted ? (
-          <Button variant="secondary" className="w-full" onClick={() => onViewReport?.(session.id)}>
-            Ver Relatório
-          </Button>
-        ) : isActive ? (
-          <Button disabled variant="outline" className="w-full">
-            Nivelamento em andamento
-          </Button>
-        ) : (
-          <Button className="w-full" onClick={() => onStart(document.id)}>
-            Iniciar Nivelamento
-          </Button>
-        )}
+      <CardFooter className="flex flex-col gap-3 border-t pt-4">
+        {/* Bloco Case 1 */}
+        <div className="w-full flex flex-col gap-2">
+          <span className="text-xs font-semibold text-muted-foreground uppercase">Nivelamento (Pré-aula)</span>
+          {isCompleted1 ? (
+            <Button variant="secondary" className="w-full" onClick={() => onViewReport?.(sessionCase1!.id)}>
+              Ver Relatório
+            </Button>
+          ) : isActive1 ? (
+            <Button disabled variant="outline" className="w-full">
+              Em andamento...
+            </Button>
+          ) : (
+            <Button className="w-full" variant="outline" onClick={() => onStart(document.id, 'case1')}>
+              Iniciar Nivelamento
+            </Button>
+          )}
+        </div>
+
+        {/* Bloco Case 2 */}
+        <div className="w-full flex flex-col gap-2 pt-2 border-t border-dashed">
+          <span className="text-xs font-semibold text-muted-foreground uppercase">Consolidação (Pós-aula)</span>
+          {isCompleted2 ? (
+            <Button variant="secondary" className="w-full" onClick={() => onViewReport?.(sessionCase2!.id)}>
+              Ver Relatório
+            </Button>
+          ) : isActive2 ? (
+            <Button disabled variant="outline" className="w-full">
+              Em andamento...
+            </Button>
+          ) : (
+            <Button className="w-full" onClick={() => onStart(document.id, 'case2')}>
+              Iniciar Consolidação
+            </Button>
+          )}
+        </div>
       </CardFooter>
     </Card>
   )

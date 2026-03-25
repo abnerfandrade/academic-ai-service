@@ -9,7 +9,7 @@ import { useUserStore } from '../../stores/useUserStore'
 import { sessionsApi } from '../../api/sessions'
 import { FileText } from 'lucide-react'
 
-export function NivelamentoPage() {
+export function SessionPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -26,6 +26,8 @@ export function NivelamentoPage() {
   useEffect(() => {
     if (sessionId === 'novo') {
       const documentId = location.state?.documentId
+      const caseType = location.state?.caseType || 'case1'
+      
       if (!documentId || !user) {
         navigate('/aluno', { replace: true })
         return
@@ -37,9 +39,9 @@ export function NivelamentoPage() {
       const createSession = async () => {
         setIsCreatingSession(true)
         try {
-          const res = await sessionsApi.create({ user_id: user.id, document_id: documentId })
-          setSession(res.data.session_id, documentId, res.data.first_message)
-          navigate(`/aluno/nivelamento/${res.data.session_id}`, { replace: true })
+          const res = await sessionsApi.create({ user_id: user.id, document_id: documentId, case_type: caseType })
+          setSession(res.data.session_id, documentId, res.data.first_message, caseType)
+          navigate(`/aluno/sessao/${res.data.session_id}`, { replace: true })
         } catch (err: any) {
           const status = err?.response?.status
           if (status === 409) toast.error('Você já tem uma sessão ativa para esta aula.')
@@ -82,21 +84,31 @@ export function NivelamentoPage() {
     }
   }
 
+  // Define o título da página baseado no state temporário (enquanto cria) ou no store (quando carregado)
+  const storeCaseType = useSessionStore(state => state.caseType)
+  const currentCaseType = (sessionId === 'novo' ? location.state?.caseType : storeCaseType) || 'case1'
+  const pageTitle = currentCaseType === 'case2' ? 'Consolidação' : 'Nivelamento'
+
   return (
     <div className="flex flex-col h-screen max-w-2xl mx-auto border-x">
       <div className="border-b px-4 py-3 flex items-center justify-between">
-        <h2 className="font-semibold">Nivelamento</h2>
+        <h2 className="font-semibold">{pageTitle}</h2>
         {sessionStatus === 'completed' && (
           <Button
             size="sm"
-            onClick={() => navigate(`/aluno/nivelamento/${sessionId}/relatorio`)}
+            onClick={() => navigate(`/aluno/sessao/${sessionId}/relatorio`)}
           >
             <FileText size={16} className="mr-2" />
             Ver meu resultado
           </Button>
         )}
       </div>
-      <ChatWindow messages={messages} isSending={isSending} isCreatingSession={isCreatingSession} />
+      <ChatWindow 
+        messages={messages} 
+        isSending={isSending} 
+        isCreatingSession={isCreatingSession} 
+        caseType={currentCaseType as 'case1' | 'case2'} 
+      />
       <ChatInput
         onSend={handleSend}
         disabled={isSending || isCreatingSession || sessionStatus !== 'active'}

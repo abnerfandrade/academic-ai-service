@@ -1,6 +1,6 @@
 # Academic AI Service - Frontend
 
-Este é o repositório do frontend do serviço **Academic AI Service**. Ele fornece a interface gráfica simples para interagir com o backend, realizando uploads de documentos, acompanhando as sessões acadêmicas e respondendo aos fluxos de nivelamento inteligente.
+Este é o repositório do frontend do serviço **Academic AI Service**. Ele fornece a interface gráfica simples para interagir com o backend, realizando uploads de documentos, acompanhando as sessões acadêmicas e respondendo aos fluxos de nivelamento inteligente (pré-aula) e consolidação de aprendizado (pós-aula).
 
 ## 🛠️ Stack Tecnológico
 
@@ -32,6 +32,11 @@ frontend/
 │   ├── api/               # Configuração do Axios e chamadas para os endpoints do backend
 │   ├── assets/            # Imagens, fontes e outros assets importados no código
 │   ├── components/        # Componentes React reutilizáveis (UI base e componentes complexos)
+│   │   ├── chat/          # Interface conversacional com os agentes
+│   │   ├── document/      # Upload e exibição de cards das aulas (Nivelamento e Consolidação)
+│   │   ├── layout/        # Componentes estruturais da página
+│   │   ├── report/        # Exibição do relatório final de desempenho
+│   │   └── ui/            # Componentes base (shadcn/ui)
 │   ├── hooks/             # Custom hooks do React e integrações com React Query
 │   ├── lib/               # Funções utilitárias (ex: classes de merge do Tailwind)
 │   ├── pages/             # Componentes que representam as rotas/telas da aplicação
@@ -47,6 +52,15 @@ frontend/
 ├── tsconfig.json          # Configurações do compilador TypeScript
 └── vite.config.ts         # Configurações do bundler Vite
 ```
+
+## 🧠 Fluxos de IA e Interatividade
+
+A interface do aluno é projetada para gerenciar diferentes tipos de sessões de aprendizagem por aula, integrando-se aos agentes de IA do backend:
+
+- **Nivelamento (Pré-aula | `case1`)**: Avalia o conhecimento prévio do aluno antes do início de um módulo.
+- **Consolidação (Pós-aula | `case2`)**: Testa a compreensão e aplicação prática do conteúdo após o consumo do material.
+
+O componente `DocumentCard` centraliza o progresso de cada fluxo, permitindo o início e a visualização de relatórios de forma independente. A `SessionPage` adapta-se dinamicamente ao contexto da sessão (títulos, comandos e estados), garantindo uma experiência conversacional fluida.
 
 ## ⚙️ Como Configurar o Projeto
 

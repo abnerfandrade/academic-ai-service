@@ -12,13 +12,15 @@ import { useSessionStore } from '../../stores/useSessionStore'
 export function RelatorioPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
   const navigate = useNavigate()
-  const { reset } = useSessionStore()
+  const { reset, caseType } = useSessionStore()
   const { data: report, isLoading, isError } = useReport(sessionId ? Number(sessionId) : null)
 
   const handleGoHome = () => {
     reset()
     navigate('/')
   }
+
+  const pageTitle = caseType === 'case2' ? 'Seu relatório de consolidação' : 'Seu relatório de nivelamento'
 
   if (isLoading) return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
@@ -45,7 +47,7 @@ export function RelatorioPage() {
           <Home size={16} className="mr-2" /> Início
         </Button>
       </div>
-      <h1 className="text-2xl font-bold">Seu relatório de nivelamento</h1>
+      <h1 className="text-2xl font-bold">{pageTitle}</h1>
       <ScoreMeter score={report!.overall_score} />
       <ConceptList strengths={report!.strengths} weaknesses={report!.weaknesses} />
       <div>
