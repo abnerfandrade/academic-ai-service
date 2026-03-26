@@ -6,24 +6,29 @@ O **Academic AI Service** é uma plataforma educacional inteligente projetada pa
 
 A aplicação foi criada para resolver o desafio de processar grandes volumes de informação acadêmica e garantir que o aprendizado seja estruturado e mensurável. Ela atende:
 
-- **Processamento de Documentos de Aula**: Extração inteligente de conteúdo de PDFs e materiais acadêmicos para alimentar a base de conhecimento.
-- **Nivelamento Automatizado**: Avaliação dinâmica do conhecimento através de diálogos guiados por IA, que culminam na identificação de gaps e auxiliam no nivelamento do aluno antes de iniciar uma aula.
+- **Processamento de Documentos de Aula**: Extração inteligente de conteúdo de PDFs e materiais acadêmicos via pipeline RAG, com mapeamento de pré-requisitos e objetivos de aprendizado.
+- **Nivelamento Acadêmico (Pré-aula)**: Avaliação dinâmica do conhecimento prévio através de diálogos guiados por IA, identificando gaps antes do módulo.
+- **Consolidação de Aprendizado (Pós-aula)**: Validação da compreensão e aplicação prática do conteúdo após a aula, com relatórios de desempenho.
 
 ## 🏗️ Arquitetura do Ecossistema
 
 O projeto é dividido em dois grandes módulos que trabalham em harmonia:
 
 ### 1. [Backend (FastAPI + LangGraph)](./backend/README.md)
-O cérebro da aplicação. Gerencia o processamento pesado e a lógica de IA.
-- **Pipeline RAG**: Utiliza o **Qdrant** (Vector Database) para armazenar e recuperar fragmentos de documentos com alta precisão semântica.
-- **LangGraph**: Orquestra o fluxo de "Nivelamento Acadêmico" como uma máquina de estados, permitindo interações humanas com memória e interrupções.
-- **PostgreSQL**: Garante a persistência de usuários, sessões e o estado dos grafos de IA.
 
-### 2. [Frontend (React + Vite)](./frontend/README.md)
+O cérebro da aplicação. Gerencia processamento pesado, IA e persistência.
+
+- **Grafos de Agentes (LangGraph)**: Dois fluxos conversacionais assíncronos com interrupções — Leveling Graph (pré-aula) e Consolidation Graph (pós-aula), ambos com persistência em PostgreSQL.
+- **Pipeline RAG**: Extração de documentos, chunking semântico, embedding e armazenamento em **Qdrant**.
+- **Stack**: FastAPI, PostgreSQL, Qdrant, LangChain/LangGraph, OpenAI/Gemini.
+
+### 2. [Frontend (React 19 + Vite)](./frontend/README.md)
+
 A interface do usuário, focada em simplicidade e fluidez.
-- **Interface Responsiva**: Desenvolvida com **Tailwind CSS** e **Radix UI**.
-- **Gerenciamento de Estado**: Utiliza **Zustand** e **React Query** para uma experiência de usuário sem engasgos.
-- **Markdown Rendering**: Exibe as interações com a IA de forma rica e formatada.
+
+- **Stack Moderno**: React 19, TypeScript, Vite (build ultrarrápido), Tailwind CSS e Radix UI.
+- **Gerenciamento de Estado**: Zustand (estado global) e React Query (sincronização com API).
+- **Componentes**: Upload de documentos, interface conversacional com agentes, exibição de relatórios com Markdown.
 
 ## 🚀 Como começar rapidamente
 
